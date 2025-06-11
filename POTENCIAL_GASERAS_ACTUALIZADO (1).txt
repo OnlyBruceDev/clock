@@ -37,9 +37,13 @@
            nvl((Cupo_asignado - Cupo_Usado),0)
            END Cupo_disponible,
            RUTAREPARTO,
-           decode(Segmentacion,null,open.dald_parameter.fsbgetvalue_chain('DESCRIPC_SEGMENT_NO_EXISTE'),
-            (select cond_commer_segm_id||' - '||description from open.ldc_condit_commerc_segm where cond_commer_segm_id = Segmentacion)) Segmento_comercial,
-
+           decode(
+             Segmentacion,
+             NULL,
+             (select cond_commer_segm_id||' - '||description
+                from catalog_dev_promigas.gdo_brz.osf_ldc_condit_commerc_segm
+               where cond_commer_segm_id = Segmentacion)
+           ) Segmento_comercial,
            decode(PROTECCION_DATOS,1,'AUTORIZA',2,'NO AUTORIZA',3,'REVOCA',null) desc_PROTECCION_DATOS,
            PROTECCION_DATOS PROTECCION_DATOS,
            categoria cod_categoria,

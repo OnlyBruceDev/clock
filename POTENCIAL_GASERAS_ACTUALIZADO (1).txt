@@ -8,11 +8,11 @@
     COD_DISTRITO,DESC_DISTRITO
     FROM(
       SELECT Cod_dpto,
-           (SELECT ge.description FROM Open.ge_geogra_location ge WHERE ge.geograp_location_id = Cod_dpto) Desc_dpto,
+           (SELECT ge.description FROM catalog_dev_promigas.gdo_brz.osf_ge_geogra_location ge WHERE ge.geograp_location_id = Cod_dpto) Desc_dpto,
            Cod_Localidad,
            Desc_localidad,
            Cod_barrio,
-           (SELECT ge.description FROM Open.ge_geogra_location ge WHERE ge.geograp_location_id = Cod_barrio) Desc_barrio,
+           (SELECT ge.description FROM catalog_dev_promigas.gdo_brz.osf_ge_geogra_location ge WHERE ge.geograp_location_id = Cod_barrio) Desc_barrio,
            Nombre_suscriptor,
            Cedula,
            Contrato,
@@ -21,10 +21,10 @@
            Direccion,
            Ciclo,
            Mul,
-           (select catedesc from open.categori where catecodi = categoria) Categoria,
-           (select sucadesc from open.subcateg where sucacodi = subcategoria and sucacate = categoria) Subcategoria,
-           (select escodesc from open.estacort where escocodi = estado_corte) Estado_corte,
-           (select description from open.ps_product_status where product_status_id = estado_conexion )Estado_conexion,
+           (select catedesc from catalog_dev_promigas.gdo_brz.osf_categori where catecodi = categoria) Categoria,
+           (select sucadesc from catalog_dev_promigas.gdo_brz.osf_subcateg where sucacodi = subcategoria and sucacate = categoria) Subcategoria,
+           (select escodesc from catalog_dev_promigas.gdo_brz.osf_estacort where escocodi = estado_corte) Estado_corte,
+           (select description from catalog_dev_promigas.gdo_brz.osf_ps_product_status where product_status_id = estado_conexion )Estado_conexion,
            Manzana,
            Num_predio,
            Cuotas_pendientes,
@@ -38,7 +38,7 @@
            END Cupo_disponible,
            RUTAREPARTO,
            decode(Segmentacion,null,open.dald_parameter.fsbgetvalue_chain('DESCRIPC_SEGMENT_NO_EXISTE'),
-            (select cond_commer_segm_id||' - '||description from open.ldc_condit_commerc_segm where cond_commer_segm_id = Segmentacion)) Segmento_comercial,
+            (select cond_commer_segm_id||' - '||description from catalog_dev_promigas.gdo_brz.osf_ldc_condit_commerc_segm where cond_commer_segm_id = Segmentacion)) Segmento_comercial,
 
            decode(PROTECCION_DATOS,1,'AUTORIZA',2,'NO AUTORIZA',3,'REVOCA',null) desc_PROTECCION_DATOS,
            PROTECCION_DATOS PROTECCION_DATOS,
@@ -54,25 +54,25 @@
 		   decode(PROTECCION_DATOS_GAS,1,'AUTORIZA',2,'NO AUTORIZA',3,'REVOCA',null) desc_PROTECCION_DATOS_GAS,
            PROTECCION_DATOS_GAS PROTECCION_DATOS_GAS,
 		   (SELECT time_compliance
-			  FROM ldc_contract_increase
+			  FROM catalog_dev_promigas.gdo_brz.osf_ldc_contract_increase
 	         WHERE ldc_contract_increase_id=id_marcacion) TIEMPO_CUMPL, --SAO535031
 		   (SELECT customer_type_id
-			  FROM ldc_contract_increase
+			  FROM catalog_dev_promigas.gdo_brz.osf_ldc_contract_increase
 			 WHERE ldc_contract_increase_id=id_marcacion) COD_TIPO_CLIENT, --SAO535031
 			'USUARIO BRILLA - NO BRILLA' DESC_TIPO_CLIENTE,
       (SELECT  D.DISTRITO_ID
-           FROM  LDC_FNBDISTRITO D
+           FROM  catalog_dev_promigas.gdo_brz.osf_ldc_fnbdistrito D
            WHERE  DISTRITO_ID IN(SELECT DISTRITO_ID
-                                 FROM OPEN.LDC_FNBDISTCONF
+                                 FROM catalog_dev_promigas.gdo_brz.osf_ldc_fnbdistconf
                                   WHERE DEPT_ID = cod_dpto
                                   AND LOCATION_ID = cod_localidad
 								  AND ACTIVE='Y') --Aranda.112506
                                   AND ROWNUM<=1
       ) COD_DISTRITO,
       (SELECT  D.DESCRIPTION
-          FROM  LDC_FNBDISTRITO D
+          FROM  catalog_dev_promigas.gdo_brz.osf_ldc_fnbdistrito D
           WHERE  DISTRITO_ID IN(SELECT DISTRITO_ID
-                          FROM OPEN.LDC_FNBDISTCONF
+                          FROM catalog_dev_promigas.gdo_brz.osf_ldc_fnbdistconf
                           WHERE DEPT_ID = cod_dpto
                           AND LOCATION_ID = cod_localidad
 						  AND ACTIVE='Y') --Aranda.112506
@@ -95,78 +95,78 @@
               ge_subscriber.subscriber_name||' '||ge_subscriber.subs_last_name||' '||ge_subscriber.subs_second_last_name Nombre_suscriptor,
               ge_subscriber.identification Cedula,
               suscripc.susccodi Contrato,
-              Open.ldc_reportesconsulta.fsbGetPhones(ge_subscriber.subscriber_id) Telefonos,
+              NULL Telefonos,
               ge_subscriber.e_mail Correo,
               ab_address.address_parsed Direccion,
               suscripc.susccicl Ciclo,
               /*decode((SELECT ldc_info_predio.multivivienda
-              FROM Open.ldc_info_predio
+              FROM catalog_dev_promigas.gdo_brz.osf_ldc_info_predio
               WHERE  ldc_info_predio.premise_id = ab_address.address_id), 1, 'MULTIFAMILIAR', 'UNIFAMILIAR') Mul,*/
               decode((SELECT count(1)
-              FROM Open.ldc_info_predio,GISPETI.multifamiliar
+              FROM catalog_dev_promigas.gdo_brz.osf_ldc_info_predio,catalog_dev_promigas.gdo_brz.osf_multifamiliar
               WHERE  ldc_info_predio.premise_id = ab_address.estate_number
-              and multifamiliar.codigo=Open.ldc_info_predio.MULTIVIVIENDA and codigo<>-1), 1, 'MULTIFAMILIAR', 'UNIFAMILIAR') Mul,
+              and multifamiliar.codigo=catalog_dev_promigas.gdo_brz.osf_ldc_info_predio.MULTIVIVIENDA and codigo<>-1), 1, 'MULTIFAMILIAR', 'UNIFAMILIAR') Mul,
               servsusc.sesucate Categoria,
               servsusc.sesusuca SubCategoria,
               servsusc.sesuesco Estado_corte,
               pr_product.product_status_id Estado_conexion,
               (select allocated_quota
-              from open.ldc_quota_fnb where subscription_id=suscripc.susccodi and rownum=1) Cupo_asignado,
+              from catalog_dev_promigas.gdo_brz.osf_ldc_quota_fnb where subscription_id=suscripc.susccodi and rownum=1) Cupo_asignado,
               (select quota_used
-              from open.ldc_quota_fnb where subscription_id=suscripc.susccodi and rownum=1) Cupo_Usado,
+              from catalog_dev_promigas.gdo_brz.osf_ldc_quota_fnb where subscription_id=suscripc.susccodi and rownum=1) Cupo_Usado,
               UNIDADPREDIAL.manzanacatastral Manzana,
               UNIDADPREDIAL.numeropredio Num_predio,
               (SELECT SUM(dif.difenucu - dif.difecupa)
-              FROM Open.diferido dif,
-                 Open.servsusc ser
+              FROM catalog_dev_promigas.gdo_brz.osf_diferido dif,
+                 catalog_dev_promigas.gdo_brz.osf_servsusc ser
               WHERE dif.difesusc = suscripc.susccodi
                AND ser.sesususc = suscripc.susccodi
                AND dif.difenuse = ser.sesunuse
                and dif.difesape>0
                AND ser.sesuserv IN (7055,7056)) Cuotas_pendientes,
               UNIDADPREDIAL.RUTAREPARTO,
-              (select SU.segment_id from ldc_segment_susc su where SU.subscription_id = suscripc.susccodi and rownum = 1)Segmentacion,
+              (select SU.segment_id from catalog_dev_promigas.gdo_brz.osf_ldc_segment_susc su where SU.subscription_id = suscripc.susccodi and rownum = 1)Segmentacion,
               (
               SELECT  cod_estado_ley
-                FROM  open.ldc_proteccion_datos
+                FROM  catalog_dev_promigas.gdo_brz.osf_ldc_proteccion_datos
                WHERE  id_cliente = suscclie
                  AND  LDC_PROTECCION_DATOS.estado = 'S'
                  AND  rownum < 2
               ) PROTECCION_DATOS,
               --478295
-              fnuConsumoMesAnterior(servsusc.sesunuse) CONSUMO,
+              NULL CONSUMO,
               servsusc.SESUFEIN FECHA_INSTALACION,
-              fsbMarcacionCliente(servsusc.sesunuse) MARCA,
-              LDC_PKGPAGARE.fsbContratoPagUniAct(suscripc.susccodi) Pagare_Unico,
+              NULL MARCA,
+              NULL Pagare_Unico,
               (
               SELECT  cod_estado_ley
-                FROM  open.ldc_proteccion_datos
+                FROM  catalog_dev_promigas.gdo_brz.osf_ldc_proteccion_datos
                WHERE  id_cliente = suscclie
                  AND  LDC_PROTECCION_DATOS.estado = 'S'
-                 and  instr(DALD_PARAMETER.fsbGetValue_Chain('COD_SERVFINBRPRO'),
+                 and  instr(NULL,
                                  TIPO_PRODUCTO) > 0
                  AND  rownum < 2
               ) PROTECCION_DATOS_BRILLA,--511306
 			  (
               SELECT  cod_estado_ley
-                FROM  open.ldc_proteccion_datos
+                FROM  catalog_dev_promigas.gdo_brz.osf_ldc_proteccion_datos
                WHERE  id_cliente = suscclie
                  AND  LDC_PROTECCION_DATOS.estado = 'S'
-                 and  TIPO_PRODUCTO = (select NUMERIC_VALUE from ld_parameter where parameter_id = 'COD_SERV_GAS') --511306
+                 and  TIPO_PRODUCTO = (select NUMERIC_VALUE from catalog_dev_promigas.gdo_brz.osf_ld_parameter where parameter_id = 'COD_SERV_GAS') --511306
                  AND  rownum < 2
               ) PROTECCION_DATOS_GAS,
 			  (SELECT ldc_contract_increase_id
-					        FROM ldc_contract_increase
+					        FROM catalog_dev_promigas.gdo_brz.osf_ldc_contract_increase
 					       WHERE subscription_id=suscripc.susccodi
 					         AND ROWNUM<=1) id_marcacion
               --478295
-          FROM Open.suscripc,
-             Open.servsusc,
-             Open.pr_product,
-             Open.ge_subscriber,
-             Open.ge_geogra_location,
-             Open.ab_address,
-             GISPETI.UNIDADPREDIAL
+          FROM catalog_dev_promigas.gdo_brz.osf_suscripc,
+             catalog_dev_promigas.gdo_brz.osf_servsusc,
+             catalog_dev_promigas.gdo_brz.osf_pr_product,
+             catalog_dev_promigas.gdo_brz.osf_ge_subscriber,
+             catalog_dev_promigas.gdo_brz.osf_ge_geogra_location,
+             catalog_dev_promigas.gdo_brz.osf_ab_address,
+             catalog_dev_promigas.gdo_brz.osf_unidadpredial
 
           WHERE suscripc.suscclie = ge_subscriber.subscriber_id
             AND suscripc.susccicl = inuCiclo
